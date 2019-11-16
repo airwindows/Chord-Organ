@@ -159,7 +159,8 @@ boolean gliding = false;
 
 // Stack mode replicates first 4 voices into last 4 with tuning offset
 boolean stacked = false;
-float stackFreqScale = 1.001;
+float stackFreqScale = 1.0025;
+//2.5 times the default amount, for a richer chorusing.
 
 int noteRange = 38;
 
@@ -323,10 +324,13 @@ void setup(){
         waveformIndicatorTimer = 0;
     }
     
-    // This makes the CV input range for the low note half the size of the other notes.
-    rootClampLow = ((float)ADC_MAX_VAL / noteRange) * 0.5;
-    // Now map the rest of the range linearly across the input range
-    rootMapCoeff = (float)noteRange / (ADC_MAX_VAL - rootClampLow);
+    // This makes the CV input range for the low note as small as possible.
+    // Circle Of Fifths Chord Organ doesn't even try to play this as notes,
+    // so this is strictly '12 regions over the CV range'.
+    rootClampLow = ((float)CHANGE_TOLERANCE);
+    rootMapCoeff = (float)23.0 / (ADC_MAX_VAL - rootClampLow);
+    // We are using 23 because 12 wasn't giving us a full circle over normal CV,
+    // and 24 went a tiny bit over
 
 #ifdef DEBUG_STARTUP
     Serial.print("Root Clamp Low ");
@@ -620,14 +624,16 @@ void checkInterface(){
     rootCV = constrain(rootCV, 0, ADC_MAX_VAL - 1);
 
     rootChanged = false;
-    // Apply hysteresis and filtering to prevent jittery quantization 
+    // Apply hysteresis and filtering to prevent jittery quantization
+    // except, we would rather have the chord stick than have it change between triggers
+    // so we do not have it 'chase' the new value: it'll just wait for a sufficient value
     // Thanks to Matthias Puech for this code 
 
     if ((chordRaw > chordRawOld + CHANGE_TOLERANCE) || (chordRaw < chordRawOld - CHANGE_TOLERANCE)){
         chordRawOld = chordRaw;    
     }
     else {
-        chordRawOld += (chordRaw - chordRawOld) >>5; 
+        // chordRawOld += (chordRaw - chordRawOld) >>5; 
         chordRaw = chordRawOld;  
     }
 
@@ -637,7 +643,7 @@ void checkInterface(){
         rootChanged = true;
     }
     else {
-        rootPotOld += (rootPot - rootPotOld) >>5;
+        // rootPotOld += (rootPot - rootPotOld) >>5;
         rootPot = rootPotOld;
     }
     if ((rootCV > rootCVOld + CHANGE_TOLERANCE) || (rootCV < rootCVOld - CHANGE_TOLERANCE)){
@@ -645,7 +651,7 @@ void checkInterface(){
         rootChanged = true;
     }
     else {
-        rootCVOld += (rootCV - rootCVOld) >>5;
+        // rootCVOld += (rootCV - rootCVOld) >>5;
         rootCV = rootCVOld;
     }
 
@@ -659,7 +665,7 @@ void checkInterface(){
     int rootCVQuant = LOW_NOTE;
     if(rootCV > rootClampLow) {
       rootCVQuant = ((rootCV - rootClampLow) * rootMapCoeff);
-      rootCVQuant = ((rootCV * 8) % 12) + 1;
+      rootCVQuant = (rootCVQuant * 7) % 12;
       // this CV offset steps by cycle of fifths: covers all semitones, but not in chromatic order
       rootCVQuant += LOW_NOTE;
     }
