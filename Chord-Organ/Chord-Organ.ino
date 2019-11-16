@@ -658,10 +658,13 @@ void checkInterface(){
     // Map ADC reading to Note Numbers
     int rootCVQuant = LOW_NOTE;
     if(rootCV > rootClampLow) {
-      rootCVQuant = ((rootCV - rootClampLow) * rootMapCoeff) + LOW_NOTE + 1;
+      rootCVQuant = ((rootCV - rootClampLow) * rootMapCoeff);
+      rootCVQuant = ((rootCV * 8) % 12) + 1;
+      // this CV offset steps by cycle of fifths: covers all semitones, but not in chromatic order
+      rootCVQuant += LOW_NOTE;
     }
-    // Use Pot as transpose for CV
-    int rootPotQuant = map(rootPot,0,ADC_MAX_VAL,0,48);
+    // Use Pot as transpose for CV over one octave, not four
+    int rootPotQuant = map(rootPot,0,ADC_MAX_VAL,0,12);
     rootQuant = rootCVQuant + rootPotQuant;
     if (rootQuant != rootQuantOld){
         changed = true; 
