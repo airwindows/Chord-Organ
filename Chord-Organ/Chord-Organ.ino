@@ -663,8 +663,8 @@ void checkInterface(){
       // this CV offset steps by cycle of fifths: covers all semitones, but not in chromatic order
       rootCVQuant += LOW_NOTE;
     }
-    // Use Pot as transpose for CV over one octave, not four
-    int rootPotQuant = map(rootPot,0,ADC_MAX_VAL,0,12);
+    // Use Pot as transpose for CV over two octaves, not four
+    int rootPotQuant = map(rootPot,0,ADC_MAX_VAL,0,24);
     rootQuant = rootCVQuant + rootPotQuant;
     if (rootQuant != rootQuantOld){
         changed = true; 
