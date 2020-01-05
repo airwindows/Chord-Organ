@@ -60,7 +60,7 @@ float currentFrequency[SINECOUNT]  = {
     55,110, 220, 440, 880,1760,3520,7040};
 
 float AMP[SINECOUNT] = { 
-    0.9, 0.9, 0.9, 0.9,0.9, 0.9, 0.9, 0.9};
+    0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9};
 
 // Volume for a single voice for each chord size
 float AMP_PER_VOICE[SINECOUNT] = {
@@ -112,7 +112,7 @@ short wave_type[4] = {
     WAVEFORM_SINE,
     WAVEFORM_SQUARE,
     WAVEFORM_SAWTOOTH,
-    WAVEFORM_PULSE,
+    WAVEFORM_TRIANGLE,
 };
 // Current waveform index
 int waveform = 0; 
@@ -159,8 +159,7 @@ boolean gliding = false;
 
 // Stack mode replicates first 4 voices into last 4 with tuning offset
 boolean stacked = false;
-float stackFreqScale = 1.0025;
-//2.5 times the default amount, for a richer chorusing.
+float stackFreqScale = 1.001;
 
 int noteRange = 38;
 
@@ -323,6 +322,11 @@ void setup(){
         flashingWave = true;
         waveformIndicatorTimer = 0;
     }
+
+    // This makes the CV input range for the low note half the size of the other notes.
+    //rootClampLow = ((float)ADC_MAX_VAL / noteRange) * 0.5;
+    // Now map the rest of the range linearly across the input range
+    //rootMapCoeff = (float)noteRange / (ADC_MAX_VAL - rootClampLow);
     
     // This makes the CV input range for the low note as small as possible.
     // Circle Of Fifths Chord Organ doesn't even try to play this as notes,
@@ -633,7 +637,6 @@ void checkInterface(){
         chordRawOld = chordRaw;    
     }
     else {
-        // chordRawOld += (chordRaw - chordRawOld) >>5; 
         chordRaw = chordRawOld;  
     }
 
@@ -643,7 +646,6 @@ void checkInterface(){
         rootChanged = true;
     }
     else {
-        // rootPotOld += (rootPot - rootPotOld) >>5;
         rootPot = rootPotOld;
     }
     if ((rootCV > rootCVOld + CHANGE_TOLERANCE) || (rootCV < rootCVOld - CHANGE_TOLERANCE)){
@@ -651,7 +653,6 @@ void checkInterface(){
         rootChanged = true;
     }
     else {
-        // rootCVOld += (rootCV - rootCVOld) >>5;
         rootCV = rootCVOld;
     }
 
