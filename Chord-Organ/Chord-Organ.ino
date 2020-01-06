@@ -60,11 +60,13 @@ float currentFrequency[SINECOUNT]  = {
     55,110, 220, 440, 880,1760,3520,7040};
 
 float AMP[SINECOUNT] = { 
-    0.9, 0.9, 0.9, 0.9,0.9, 0.9, 0.9, 0.9};
+    0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9};
 
 // Volume for a single voice for each chord size
 float AMP_PER_VOICE[SINECOUNT] = {
-  0.4,0.3,0.22,0.2,0.15,0.15,0.13,0.12};
+  0.2,0.3,0.3,0.3,0.2,0.15,0.13,0.12};
+  //this is meant to scale high notes quieter, but we must double the low note to
+  //stop it just being the root (and not specified in the chord reading)
 
 // Store midi note number to frequency in a table
 // Later can replace the table for custom tunings / scala support.
@@ -112,7 +114,7 @@ short wave_type[4] = {
     WAVEFORM_SINE,
     WAVEFORM_SQUARE,
     WAVEFORM_SAWTOOTH,
-    WAVEFORM_PULSE,
+    WAVEFORM_TRIANGLE,
 };
 // Current waveform index
 int waveform = 0; 
@@ -582,6 +584,10 @@ void updateFrequencies() {
             oscillator[i]->frequency(FREQ[i]);
         }
     }
+    oscillator[0]->frequency(FREQ[1]);
+    //if we don't deal with this it is permanently the root note. Also, we need exactly five chord entries
+    //and anything we don't touch turns to the root note. If the chords are being used for root changes,
+    //we need to specify absolutely every note played with no root included. from the 'root' CV setting
 }
 
 void updateAmps(){
@@ -660,6 +666,12 @@ void checkInterface(){
     if(rootCV > rootClampLow) {
       rootCVQuant = ((rootCV - rootClampLow) * rootMapCoeff) + LOW_NOTE + 1;
     }
+
+    int notescale = rootCVQuant - (rootCVQuant % 12);
+    //get the remainder so we can go back to whatever octave we're in
+    rootCVQuant = (((rootCVQuant-notescale)*7)%12)+notescale;
+    // this CV offset steps by cycle of fifths: covers all semitones, but not in chromatic order
+
     // Use Pot as transpose for CV
     int rootPotQuant = map(rootPot,0,ADC_MAX_VAL,0,48);
     rootQuant = rootCVQuant + rootPotQuant;
