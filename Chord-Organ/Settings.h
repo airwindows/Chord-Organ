@@ -14,6 +14,8 @@ class Settings {
 
 	boolean stacked = false;
     boolean extraWaves = false;
+    boolean triangle = false;
+    boolean fifths = false;
     boolean glide = false;
     int glideTime = 50;
     uint8_t noteRange = 38;

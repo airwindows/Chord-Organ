@@ -64,9 +64,7 @@ float AMP[SINECOUNT] = {
 
 // Volume for a single voice for each chord size
 float AMP_PER_VOICE[SINECOUNT] = {
-  0.2,0.3,0.3,0.3,0.2,0.15,0.13,0.12};
-  //this is meant to scale high notes quieter, but we must double the low note to
-  //stop it just being the root (and not specified in the chord reading)
+  0.4,0.3,0.22,0.2,0.15,0.15,0.13,0.12};
 
 // Store midi note number to frequency in a table
 // Later can replace the table for custom tunings / scala support.
@@ -114,7 +112,7 @@ short wave_type[4] = {
     WAVEFORM_SINE,
     WAVEFORM_SQUARE,
     WAVEFORM_SAWTOOTH,
-    WAVEFORM_TRIANGLE,
+    WAVEFORM_PULSE,
 };
 // Current waveform index
 int waveform = 0; 
@@ -151,6 +149,8 @@ float WAVEFORM_AMP[12] = {
 // Main flag for glide on / off
 boolean glide = false;
 // msecs glide time. 
+boolean fifths = false;
+// circle of fifths CV control
 uint32_t glideTime = 50;
 // keep reciprocal
 float oneOverGlideTime = 0.02;
@@ -219,6 +219,21 @@ void setup(){
     oscillator[6] = &waveform7;
     oscillator[7] = &waveform8;
 
+    if (settings.fifths == true) {
+      AMP_PER_VOICE[0] = 0.2; //originally 0.4
+      AMP_PER_VOICE[1] = 0.2; //originally 0.3
+      //changes from the circle of fifths version:
+      //this is meant to scale high notes quieter, but we must double the low note to
+      //stop it just being the root (and not specified in the chord reading)
+    }
+   
+     if (settings.triangle == true) {
+        wave_type[3] = WAVEFORM_TRIANGLE;
+        //override pulse wave with triangle for mellower wave choices
+        WAVEFORM_AMP[3] = 0.8; //originally 0.6,
+        //triangle wave can be a bit louder
+    }
+
     for(int i=0;i<128;i++) {
         MIDI_TO_FREQ[i] = numToFreq(i);
     }
@@ -268,6 +283,7 @@ void setup(){
     glide = settings.glide;
     glideTime = settings.glideTime;
     oneOverGlideTime = 1.0 / (float) glideTime;
+    fifths = settings.fifths;
     noteRange = settings.noteRange;
     stacked = settings.stacked;
 
@@ -286,6 +302,8 @@ void setup(){
     Serial.println(glide);
     Serial.print("Glide Time ");
     Serial.println(glideTime);
+    Serial.print("Fifths ");
+    Serial.println(fifths);
     Serial.print("Note Range ");
     Serial.println(noteRange);
     Serial.print("Stacked ");
@@ -584,10 +602,15 @@ void updateFrequencies() {
             oscillator[i]->frequency(FREQ[i]);
         }
     }
-    oscillator[0]->frequency(FREQ[1]);
-    //if we don't deal with this it is permanently the root note. Also, we need exactly five chord entries
-    //and anything we don't touch turns to the root note. If the chords are being used for root changes,
-    //we need to specify absolutely every note played with no root included. from the 'root' CV setting
+   if (fifths == true){
+      //the following is a patch to fix a problem Circle Of Fifths Organ was having.
+      //If you specify notes to make up entirely different chords, as I do, there are times when you get
+      //unwanted and unrelated notes, which seem to be some kind of 'default note'.
+      oscillator[0]->frequency(FREQ[1]);
+      //if we don't deal with this it is permanently the root note. Also, we need exactly five chord entries
+      //and anything we don't touch turns to the root note. If the chords are being used for root changes,
+      //we need to specify absolutely every note played with no root included. from the 'root' CV setting
+   }
 }
 
 void updateAmps(){
@@ -667,10 +690,12 @@ void checkInterface(){
       rootCVQuant = ((rootCV - rootClampLow) * rootMapCoeff) + LOW_NOTE + 1;
     }
 
+    if (fifths == true) {
     int notescale = rootCVQuant - (rootCVQuant % 12);
-    //get the remainder so we can go back to whatever octave we're in
+     //get the remainder so we can go back to whatever octave we're in
     rootCVQuant = (((rootCVQuant-notescale)*7)%12)+notescale;
-    // this CV offset steps by cycle of fifths: covers all semitones, but not in chromatic order
+     // this CV offset steps by cycle of fifths: covers all semitones, but not in chromatic order
+    }
 
     // Use Pot as transpose for CV
     int rootPotQuant = map(rootPot,0,ADC_MAX_VAL,0,48);

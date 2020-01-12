@@ -98,6 +98,10 @@ void Settings::read() {
 
                 if(settingValue.startsWith("!WAVES")) {
                     extraWaves = true;
+                } else if(settingValue.startsWith("!TRIANGLE")) {
+                    triangle = true;
+                } else if(settingValue.startsWith("!FIFTHS")) {
+                    fifths = true;
                 } else if(settingValue.startsWith("!GLIDE")) {
                     glide = true;
                     int spacePos = settingValue.indexOf(' ');
