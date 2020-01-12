@@ -219,13 +219,13 @@ void setup(){
     oscillator[6] = &waveform7;
     oscillator[7] = &waveform8;
 
-    if (settings.fifths == true) {
-      AMP_PER_VOICE[0] = 0.2; //originally 0.4
-      AMP_PER_VOICE[1] = 0.2; //originally 0.3
+//    if (settings.fifths == true) {
+//      AMP_PER_VOICE[0] = 0.2; //originally 0.4
+//      AMP_PER_VOICE[1] = 0.2; //originally 0.3
       //changes from the circle of fifths version:
       //this is meant to scale high notes quieter, but we must double the low note to
       //stop it just being the root (and not specified in the chord reading)
-    }
+//    }
    
      if (settings.triangle == true) {
         wave_type[3] = WAVEFORM_TRIANGLE;
@@ -606,7 +606,7 @@ void updateFrequencies() {
       //the following is a patch to fix a problem Circle Of Fifths Organ was having.
       //If you specify notes to make up entirely different chords, as I do, there are times when you get
       //unwanted and unrelated notes, which seem to be some kind of 'default note'.
-      oscillator[0]->frequency(FREQ[1]);
+      //oscillator[0]->frequency(FREQ[1]);
       //if we don't deal with this it is permanently the root note. Also, we need exactly five chord entries
       //and anything we don't touch turns to the root note. If the chords are being used for root changes,
       //we need to specify absolutely every note played with no root included. from the 'root' CV setting
@@ -678,7 +678,8 @@ void checkInterface(){
         rootCV = rootCVOld;
     }
 
-    chordQuant = map(chordRaw, 0, ADC_MAX_VAL, 0, chordCount);
+    chordQuant = map(chordRaw, 0, ADC_MAX_VAL, 0, chordCount-1);
+    //This reaches all 16 chord shapes where chordCount tries to produce 17
     if (chordQuant != chordQuantOld){
         changed = true; 
         chordQuantOld = chordQuant;    
@@ -691,10 +692,10 @@ void checkInterface(){
     }
 
     if (fifths == true) {
-    int notescale = rootCVQuant - (rootCVQuant % 12);
-     //get the remainder so we can go back to whatever octave we're in
-    rootCVQuant = (((rootCVQuant-notescale)*7)%12)+notescale;
-     // this CV offset steps by cycle of fifths: covers all semitones, but not in chromatic order
+      int notescale = rootCVQuant - (rootCVQuant % 12);
+      //get the remainder so we can go back to whatever octave we're in
+      rootCVQuant = (((rootCVQuant-notescale)*7)%12)+notescale;
+      // this CV offset steps by cycle of fifths: covers all semitones, but not in chromatic order
     }
 
     // Use Pot as transpose for CV

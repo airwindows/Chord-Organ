@@ -59,7 +59,9 @@ void Settings::read() {
         if (character == '[') {
             if(numChords < 16) {
                 // Serial.println("Enter Chord");
-                state = CHORD;    
+                state = CHORD;
+                continue;
+                //This avoids feeding toInt() a square bracket and getting a zero    
             }
         } else if(character == '!') {
             state = SETTING;
