@@ -149,12 +149,14 @@ float WAVEFORM_AMP[12] = {
 // Main flag for glide on / off
 boolean glide = false;
 // msecs glide time. 
-boolean fifths = false;
-// circle of fifths CV control
 uint32_t glideTime = 50;
 // keep reciprocal
 float oneOverGlideTime = 0.02;
 // Time since glide started
+boolean triangle = false;
+// replace pulse with triangle wave: good for basses
+boolean fifths = false;
+// circle of fifths CV control
 elapsedMillis glideTimer = 0;
 // Are we currently gliding notes
 boolean gliding = false;
@@ -219,21 +221,6 @@ void setup(){
     oscillator[6] = &waveform7;
     oscillator[7] = &waveform8;
 
-//    if (settings.fifths == true) {
-//      AMP_PER_VOICE[0] = 0.2; //originally 0.4
-//      AMP_PER_VOICE[1] = 0.2; //originally 0.3
-      //changes from the circle of fifths version:
-      //this is meant to scale high notes quieter, but we must double the low note to
-      //stop it just being the root (and not specified in the chord reading)
-//    }
-   
-     if (settings.triangle == true) {
-        wave_type[3] = WAVEFORM_TRIANGLE;
-        //override pulse wave with triangle for mellower wave choices
-        WAVEFORM_AMP[3] = 0.8; //originally 0.6,
-        //triangle wave can be a bit louder
-    }
-
     for(int i=0;i<128;i++) {
         MIDI_TO_FREQ[i] = numToFreq(i);
     }
@@ -283,6 +270,7 @@ void setup(){
     glide = settings.glide;
     glideTime = settings.glideTime;
     oneOverGlideTime = 1.0 / (float) glideTime;
+    triangle = settings.triangle;
     fifths = settings.fifths;
     noteRange = settings.noteRange;
     stacked = settings.stacked;
@@ -342,7 +330,14 @@ void setup(){
         flashingWave = true;
         waveformIndicatorTimer = 0;
     }
-    
+   
+     if (triangle == true) {
+        wave_type[3] = WAVEFORM_TRIANGLE;
+        //override pulse wave with triangle for mellower wave choices
+        WAVEFORM_AMP[3] = 0.8; //originally 0.6,
+        //triangle wave can be a bit louder
+    }
+
     // This makes the CV input range for the low note half the size of the other notes.
     rootClampLow = ((float)ADC_MAX_VAL / noteRange) * 0.5;
     // Now map the rest of the range linearly across the input range
@@ -602,15 +597,6 @@ void updateFrequencies() {
             oscillator[i]->frequency(FREQ[i]);
         }
     }
-   if (fifths == true){
-      //the following is a patch to fix a problem Circle Of Fifths Organ was having.
-      //If you specify notes to make up entirely different chords, as I do, there are times when you get
-      //unwanted and unrelated notes, which seem to be some kind of 'default note'.
-      //oscillator[0]->frequency(FREQ[1]);
-      //if we don't deal with this it is permanently the root note. Also, we need exactly five chord entries
-      //and anything we don't touch turns to the root note. If the chords are being used for root changes,
-      //we need to specify absolutely every note played with no root included. from the 'root' CV setting
-   }
 }
 
 void updateAmps(){
@@ -679,7 +665,7 @@ void checkInterface(){
     }
 
     chordQuant = map(chordRaw, 0, ADC_MAX_VAL, 0, chordCount-1);
-    //This reaches all 16 chord shapes where chordCount tries to produce 17
+    //This reaches all 16 chord shapes where using chordCount tries to produce 17
     if (chordQuant != chordQuantOld){
         changed = true; 
         chordQuantOld = chordQuant;    
