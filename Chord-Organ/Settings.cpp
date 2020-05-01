@@ -109,8 +109,8 @@ void Settings::read() {
                     int spacePos = settingValue.indexOf(' ');
                     if(spacePos > 0) {
                         glideTime = settingValue.substring(spacePos).toInt();
-                        if(glideTime < 5) glideTime = 5;
-                        if(glideTime > 300) glideTime = 300;
+                        if(glideTime < 1) glideTime = 1; //avoids divide by zero
+                        if(glideTime > 32767) glideTime = 32767; //maximum integer: 32 seconds?
                     }
 
                 } else if(settingValue.startsWith("!RANGE")) {
