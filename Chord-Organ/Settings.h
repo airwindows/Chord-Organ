@@ -12,7 +12,8 @@ class Settings {
 	float toFloat(String settingValue);
 	boolean toBoolean(String settingValue);
 
-	boolean stacked = false;
+	  boolean stacked = false;
+    int stackedDetune = 1000;
     boolean extraWaves = false;
     boolean triangle = false;
     boolean fifths = false;

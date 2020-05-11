@@ -161,8 +161,9 @@ elapsedMillis glideTimer = 0;
 // Are we currently gliding notes
 boolean gliding = false;
 
-// Stack mode replicates first 4 voices into last 4 with tuning offset
+// Stack mode replicates first 4 voices into last 4 with adjustable offset
 boolean stacked = false;
+uint32_t stackedDetune = 1000;
 float stackFreqScale = 1.001;
 
 int noteRange = 38;
@@ -274,6 +275,8 @@ void setup(){
     fifths = settings.fifths;
     noteRange = settings.noteRange;
     stacked = settings.stacked;
+    stackedDetune = settings.stackedDetune;
+    stackFreqScale = 1.0 + (float)(1.0 / (float) stackedDetune);  
 
 #ifdef DEBUG_STARTUP
     Serial.print("Waveform page ");

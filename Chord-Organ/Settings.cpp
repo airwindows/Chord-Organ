@@ -122,7 +122,13 @@ void Settings::read() {
                     }
                 } else if(settingValue.startsWith("!STACK")) {
                 	stacked = true;
-                } else {
+                    int spacePos = settingValue.indexOf(' ');
+                    if(spacePos > 0) {
+                        stackedDetune = settingValue.substring(spacePos).toInt();
+                        if(stackedDetune < 1) stackedDetune = 1; //avoids divide by zero, octave up
+                        if(stackedDetune > 32767) stackedDetune = 32767; //maximum integer: 3/1000ths default offset
+                    }
+               } else {
                     Serial.print("Unknown option:");
                     Serial.print(settingValue);
                     Serial.println(":");
