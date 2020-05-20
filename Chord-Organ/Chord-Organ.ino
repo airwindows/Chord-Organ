@@ -165,6 +165,7 @@ boolean gliding = false;
 boolean stacked = false;
 uint32_t stackedDetune = 1000;
 float stackFreqScale = 1.001;
+float playbackRate = 300000;
 
 int noteRange = 38;
 
@@ -212,7 +213,7 @@ void setup(){
     pinMode(LED3,OUTPUT);
     AudioMemory(50);
     analogReadRes(ADC_BITS);
-    
+ 
     oscillator[0] = &waveform1;
     oscillator[1] = &waveform2;
     oscillator[2] = &waveform3;
@@ -222,12 +223,8 @@ void setup(){
     oscillator[6] = &waveform7;
     oscillator[7] = &waveform8;
 
-    for(int i=0;i<128;i++) {
-        MIDI_TO_FREQ[i] = numToFreq(i);
-    }
-
 #ifdef DEBUG_STARTUP
-  while( !Serial );
+   while( !Serial );
 
     Serial.println("Starting");
     // ledWrite(waveform);
@@ -268,6 +265,7 @@ void setup(){
         waveform = 0;
     }
 
+    playbackRate = settings.playbackRate;
     glide = settings.glide;
     glideTime = settings.glideTime;
     oneOverGlideTime = 1.0 / (float) glideTime;
@@ -303,6 +301,20 @@ void setup(){
 #endif
 
     // Setup audio
+    //fool with DAC guts
+    const unsigned config = PDB_SC_TRGSEL(15) | PDB_SC_PDBEN | PDB_SC_CONT | PDB_SC_PDBIE | PDB_SC_DMAEN;
+    PDB0_SC = 0;
+    PDB0_IDLY = 1;
+    PDB0_MOD = round((float)F_BUS / playbackRate) - 1;
+    PDB0_SC = config | PDB_SC_LDOK;
+    PDB0_SC = config | PDB_SC_SWTRIG;
+    PDB0_CH0C1 = 0x0101;
+    //end fool with DAC guts. After SD card so we can drop the sample rate for !WAVES wavetable playback
+    
+        for(int i=0;i<128;i++) {
+        MIDI_TO_FREQ[i] = numToFreq(i);
+    } //set up num to freq AFTER we have the assigned sample rate
+
     for(int i=0;i<SINECOUNT;i++) {
         oscillator[i]->pulseWidth(0.5);
     }
@@ -762,5 +774,5 @@ void printPlaying(){
 float numToFreq(int input) {
     int number = input - 21; // set to midi note numbers = start with 21 at A0 
     number = number - 48; // A0 is 48 steps below A4 = 440hz
-    return 440*(pow (1.059463094359,number));
+    return (19404000/playbackRate)*(pow (1.059463094359,number));
 }

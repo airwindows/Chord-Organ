@@ -120,6 +120,13 @@ void Settings::read() {
                         if(noteRange < 12) noteRange = 12;
                         if(noteRange > 72) noteRange = 72;
                     }
+               } else if(settingValue.startsWith("!SAMPLERATE")) {
+                    int spacePos = settingValue.indexOf(' ');
+                    if(spacePos > 0) {
+                        playbackRate = settingValue.substring(spacePos).toFloat();
+                        if(playbackRate < 100) playbackRate = 100;
+                        if(playbackRate > 350000) playbackRate = 350000;
+                    }
                 } else if(settingValue.startsWith("!STACK")) {
                 	stacked = true;
                     int spacePos = settingValue.indexOf(' ');

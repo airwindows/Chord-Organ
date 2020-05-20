@@ -10,7 +10,7 @@ class Settings {
     void read();
     void write();
 	float toFloat(String settingValue);
-	boolean toBoolean(String settingValue);
+  boolean toBoolean(String settingValue);
 
 	  boolean stacked = false;
     int stackedDetune = 1000;
@@ -19,6 +19,7 @@ class Settings {
     boolean fifths = false;
     boolean glide = false;
     int glideTime = 50;
+    float playbackRate = 300000;
     uint8_t noteRange = 38;
     uint8_t numChords = 0;
 	// Initialise Array with 255s, to identify unfilled elements when reading from SD card 
