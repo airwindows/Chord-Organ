@@ -100,19 +100,8 @@ void Settings::read() {
 
                 if(settingValue.startsWith("!WAVES")) {
                     extraWaves = true;
-                } else if(settingValue.startsWith("!TRIANGLE")) {
-                    triangle = true;
                 } else if(settingValue.startsWith("!FIFTHS")) {
                     fifths = true;
-                } else if(settingValue.startsWith("!GLIDE")) {
-                    glide = true;
-                    int spacePos = settingValue.indexOf(' ');
-                    if(spacePos > 0) {
-                        glideTime = settingValue.substring(spacePos).toInt();
-                        if(glideTime < 1) glideTime = 1; //avoids divide by zero
-                        if(glideTime > 32767) glideTime = 32767; //maximum integer: 32 seconds?
-                    }
-
                 } else if(settingValue.startsWith("!RANGE")) {
                     int spacePos = settingValue.indexOf(' ');
                     if(spacePos > 0) {
@@ -127,15 +116,7 @@ void Settings::read() {
                         if(playbackRate < 100) playbackRate = 100;
                         if(playbackRate > 350000) playbackRate = 350000;
                     }
-                } else if(settingValue.startsWith("!STACK")) {
-                	stacked = true;
-                    int spacePos = settingValue.indexOf(' ');
-                    if(spacePos > 0) {
-                        stackedDetune = settingValue.substring(spacePos).toInt();
-                        if(stackedDetune < 1) stackedDetune = 1; //avoids divide by zero, octave up
-                        if(stackedDetune > 32767) stackedDetune = 32767; //maximum integer: 3/1000ths default offset
-                    }
-               } else {
+                } else {
                     Serial.print("Unknown option:");
                     Serial.print(settingValue);
                     Serial.println(":");

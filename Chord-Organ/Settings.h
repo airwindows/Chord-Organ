@@ -12,13 +12,8 @@ class Settings {
 	float toFloat(String settingValue);
   boolean toBoolean(String settingValue);
 
-	  boolean stacked = false;
-    int stackedDetune = 1000;
     boolean extraWaves = false;
-    boolean triangle = false;
     boolean fifths = false;
-    boolean glide = false;
-    int glideTime = 50;
     float playbackRate = 300000;
     uint8_t noteRange = 38;
     uint8_t numChords = 0;
